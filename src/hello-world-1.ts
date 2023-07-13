@@ -1,10 +1,10 @@
 export {};
 
 customElements.define(
-  'hello-world',
+  'hello-world-1',
   class extends HTMLElement {
     connectedCallback() {
-      this.innerText = 'Hello World';
+      this.innerText = 'Hello World 1';
     }
   }
 );
