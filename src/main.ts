@@ -5,7 +5,7 @@ type CustomElementImports = Record<string, () => Promise<any>>;
 function hydrateOnIdle(customElementImports: CustomElementImports) {
   addEventListener('DOMContentLoaded', () => {
     const tagsToLoad = new Set<string>();
-    document.querySelectorAll('[hydrate="idle"]').forEach((el) => {
+    document.querySelectorAll('[hydrate-method="idle"]').forEach((el) => {
       const tagName = el.tagName.toLowerCase();
       if (tagName.includes('-') && customElements.get(tagName) === undefined) {
         tagsToLoad.add(tagName);
@@ -14,8 +14,7 @@ function hydrateOnIdle(customElementImports: CustomElementImports) {
 
     requestIdleCallback(() => {
       tagsToLoad.forEach((tag) => {
-        customElementImports[tag]?.() ??
-          console.warn(`Custom element '${tag} has no dynamic import defined.'`);
+        customElementImports[tag]?.();
       });
     });
   });
@@ -28,15 +27,14 @@ function hydrateOnVisible(customElementImports: CustomElementImports) {
         if (entry.isIntersecting) {
           const tagName = entry.target.tagName.toLowerCase();
 
-          customElementImports[tagName]?.() ??
-            console.warn(`Custom element '${tagName} has no dynamic import defined.'`);
+          customElementImports[tagName]?.();
 
           observer.unobserve(entry.target);
         }
       });
     });
 
-    document.querySelectorAll('[hydrate="visible"]').forEach((el) => {
+    document.querySelectorAll('[hydrate-method="visible"]').forEach((el) => {
       const tagName = el.tagName.toLowerCase();
       if (tagName.includes('-') && customElements.get(tagName) === undefined) {
         intersectionObserver.observe(el);
