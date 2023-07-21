@@ -6,9 +6,9 @@ function hydrateOnIdle(customElementImports: CustomElementImports) {
   addEventListener('DOMContentLoaded', () => {
     const tagsToLoad = new Set<string>();
     document.querySelectorAll('[hydrate\\:idle]').forEach((el) => {
-      const tagName = el.tagName.toLowerCase();
-      if (tagName.includes('-') && customElements.get(tagName) === undefined) {
-        tagsToLoad.add(tagName);
+      const { localName } = el;
+      if (localName.includes('-') && customElements.get(localName) === undefined) {
+        tagsToLoad.add(localName);
       }
     });
 
@@ -25,9 +25,7 @@ function hydrateOnVisible(customElementImports: CustomElementImports) {
     const intersectionObserver = new IntersectionObserver((entries, observer) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
-          const tagName = entry.target.tagName.toLowerCase();
-
-          customElementImports[tagName]?.();
+          customElementImports[entry.target.localName]?.();
 
           observer.unobserve(entry.target);
         }
@@ -35,8 +33,8 @@ function hydrateOnVisible(customElementImports: CustomElementImports) {
     });
 
     document.querySelectorAll('[hydrate\\:visible]').forEach((el) => {
-      const tagName = el.tagName.toLowerCase();
-      if (tagName.includes('-') && customElements.get(tagName) === undefined) {
+      const { localName } = el;
+      if (localName.includes('-') && customElements.get(localName) === undefined) {
         intersectionObserver.observe(el);
       }
     });
