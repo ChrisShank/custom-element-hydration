@@ -2,42 +2,41 @@ import './hello-world';
 
 type CustomElementImports = Record<string, () => Promise<any>>;
 
-function hydrateOnIdle(customElementImports: CustomElementImports) {
-  addEventListener('DOMContentLoaded', () => {
-    const tagsToLoad = new Set<string>();
-    document.querySelectorAll('[hydrate\\:idle]').forEach((el) => {
-      const { localName } = el;
-      if (localName.includes('-') && customElements.get(localName) === undefined) {
-        tagsToLoad.add(localName);
-      }
-    });
+// Assume that JS module is deferred so that the DOM is loaded.
+// Using DOMContentLoaded is blocked by executing all of the scripts
 
-    requestIdleCallback(() => {
-      tagsToLoad.forEach((tag) => {
-        customElementImports[tag]?.();
-      });
+function hydrateOnIdle(customElementImports: CustomElementImports) {
+  const tagsToLoad = new Set<string>();
+  document.querySelectorAll('[hydrate\\:idle]').forEach((el) => {
+    const { localName } = el;
+    if (localName.includes('-') && customElements.get(localName) === undefined) {
+      tagsToLoad.add(localName);
+    }
+  });
+
+  requestIdleCallback(() => {
+    tagsToLoad.forEach((tag) => {
+      customElementImports[tag]?.();
     });
   });
 }
 
 function hydrateOnVisible(customElementImports: CustomElementImports) {
-  addEventListener('DOMContentLoaded', () => {
-    const intersectionObserver = new IntersectionObserver((entries, observer) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          customElementImports[entry.target.localName]?.();
+  const intersectionObserver = new IntersectionObserver((entries, observer) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        customElementImports[entry.target.localName]?.();
 
-          observer.unobserve(entry.target);
-        }
-      });
-    });
-
-    document.querySelectorAll('[hydrate\\:visible]').forEach((el) => {
-      const { localName } = el;
-      if (localName.includes('-') && customElements.get(localName) === undefined) {
-        intersectionObserver.observe(el);
+        observer.unobserve(entry.target);
       }
     });
+  });
+
+  document.querySelectorAll('[hydrate\\:visible]').forEach((el) => {
+    const { localName } = el;
+    if (localName.includes('-') && customElements.get(localName) === undefined) {
+      intersectionObserver.observe(el);
+    }
   });
 }
 
