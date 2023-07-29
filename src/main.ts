@@ -40,10 +40,47 @@ function hydrateOnVisible(customElementImports: CustomElementImports) {
   });
 }
 
+function hydrateOnInteraction(customElementImports: CustomElementImports) {
+  const numberOfCustomElementsToImport = Object.keys(customElementImports).length;
+  const tagsLoaded = new Set<string>();
+
+  const listener = async (e: MouseEvent) => {
+    if (!(e.target instanceof HTMLElement)) return;
+
+    const ce = e.target.hasAttribute('hydrate//:interaction')
+      ? e.target
+      : e.target.closest('[hydrate\\:interaction]');
+
+    if (ce === null) return;
+
+    if (!(ce.localName in customElementImports)) {
+      return;
+    }
+
+    await customElementImports[ce.localName]();
+
+    tagsLoaded.add(e.target.localName);
+
+    if ('handleEvent' in e.target && typeof e.target.handleEvent === 'function') {
+      e.target.handleEvent(e);
+    }
+
+    if (tagsLoaded.size === numberOfCustomElementsToImport) {
+      document.removeEventListener('click', listener);
+    }
+  };
+
+  document.addEventListener('click', listener, { capture: true });
+}
+
 hydrateOnIdle({
   'hello-world-1': () => import('./hello-world-1'),
 });
 
 hydrateOnVisible({
   'hello-world-2': () => import('./hello-world-2'),
+});
+
+hydrateOnInteraction({
+  'hello-world-3': () => import('./hello-world-3'),
 });
